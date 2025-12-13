@@ -180,7 +180,7 @@ const POS = () => {
       </div>
 
       {/* RIGHT SECTION: Cart Sidebar */}
-      <div className="w-96 bg-white border-l border-gray-200 flex flex-col h-full shadow-2xl z-20">
+      <div className="w-86 bg-white border-l border-gray-200 flex flex-col h-full shadow-2xl z-20">
         <div className="p-6 border-b border-gray-100 bg-white">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <ShoppingBag className="text-indigo-600" />

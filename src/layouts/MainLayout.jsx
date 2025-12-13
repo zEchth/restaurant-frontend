@@ -11,8 +11,11 @@ const MainLayout = ({ children }) => {
 
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+
     { icon: <ShoppingCart size={20} />, label: 'Kasir (POS)', path: '/pos' },
+
     { icon: <ClipboardList size={20} />, label: 'Riwayat Pesanan', path: '/orders' },
+    
     // Menu management hanya muncul jika ADMIN
     ...(user?.role === 'ADMIN' ? [{ icon: <UtensilsCrossed size={20} />, label: 'Manajemen Menu', path: '/menus' }] : []),
   ];

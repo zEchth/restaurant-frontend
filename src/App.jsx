@@ -12,6 +12,8 @@ import Login from './pages/Login';
 import POS from './pages/POS';
 import MenuManagement from './pages/MenuManagement';
 import Dashboard from './pages/Dashboard';
+import Orders from './pages/Orders';
+import NotFound from './pages/NotFound';
 
 // Component Proteksi Khusus Admin
 const AdminRoute = ({ children }) => {
@@ -82,6 +84,8 @@ function App() {
               </ProtectedRoute>
             } 
           />
+
+          <Route path="*" element={<NotFound />} />
 
         </Routes>
       </Router>
