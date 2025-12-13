@@ -1,29 +1,41 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import api from '../api/axios';
-import { AuthContext } from '../context/AuthContext';
-import { toast } from 'react-toastify';
-import { 
-  Search, Filter, ChevronLeft, ChevronRight, Eye, CheckCircle, 
-  XCircle, Clock, Printer, X 
-} from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { id } from 'date-fns/locale';
+import React, { useState, useEffect, useContext, useRef } from "react";
+import api from "../api/axios";
+import { AuthContext } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import {
+  Search,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Printer,
+  X,
+} from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { id } from "date-fns/locale";
 
 const Orders = () => {
   const { user } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, limit: 10 });
-  
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 1,
+    limit: 10,
+  });
+
   // Filter States
-  const [statusFilter, setStatusFilter] = useState('');
-  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState("");
 
   // Modal Detail State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  
+
   // Ref untuk area yang akan di-print
   const printRef = useRef();
 
@@ -34,14 +46,14 @@ const Orders = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/orders', {
+      const res = await api.get("/orders", {
         params: {
           page: pagination.page,
           limit: pagination.limit,
           status: statusFilter || undefined,
           search: search || undefined,
-          sort: 'desc'
-        }
+          sort: "desc",
+        },
       });
       setOrders(res.data.data);
       setPagination(res.data.pagination);
@@ -61,7 +73,7 @@ const Orders = () => {
       const res = await api.get(`/orders/${orderId}`);
       setSelectedOrder(res.data.data);
     } catch (err) {
-      toast.error('Gagal mengambil detail order');
+      toast.error("Gagal mengambil detail order");
       setIsModalOpen(false);
     } finally {
       setLoadingDetail(false);
@@ -86,37 +98,45 @@ const Orders = () => {
       await api.patch(`/orders/${orderId}/status`, { status: newStatus });
       toast.success(`Status diubah jadi ${newStatus}`);
       fetchOrders();
-      if(selectedOrder) openDetail(orderId); // Refresh modal jika sedang terbuka
+      if (selectedOrder) openDetail(orderId); // Refresh modal jika sedang terbuka
     } catch (err) {
-      toast.error('Gagal update status');
+      toast.error("Gagal update status");
     }
   };
 
   const handleCancel = async (orderId) => {
-    if (!window.confirm('Yakin batalkan pesanan?')) return;
+    if (!window.confirm("Yakin batalkan pesanan?")) return;
     try {
       await api.delete(`/orders/${orderId}`);
-      toast.success('Pesanan dibatalkan');
+      toast.success("Pesanan dibatalkan");
       fetchOrders();
       setIsModalOpen(false);
     } catch (err) {
-      toast.error('Gagal batalkan pesanan');
+      toast.error("Gagal batalkan pesanan");
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'PAID': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'READY': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'PENDING': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'CANCELLED': return 'bg-red-50 text-red-600 border-red-100';
-      default: return 'bg-gray-100 text-gray-600';
+      case "PAID":
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "READY":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "PENDING":
+        return "bg-amber-100 text-amber-700 border-amber-200";
+      case "CANCELLED":
+        return "bg-red-50 text-red-600 border-red-100";
+      default:
+        return "bg-gray-100 text-gray-600";
     }
   };
 
-  const formatIDR = (val) => new Intl.NumberFormat('id-ID', {
-    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-  }).format(val);
+  const formatIDR = (val) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(val);
 
   return (
     <div className="p-8 max-w-7xl mx-auto h-screen flex flex-col">
@@ -124,13 +144,18 @@ const Orders = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Riwayat Pesanan</h1>
-          <p className="text-gray-500 text-sm mt-1">Pantau & Cetak Struk Transaksi</p>
+          <p className="text-gray-500 text-sm mt-1">
+            Pantau & Cetak Struk Transaksi
+          </p>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Cari kasir..." 
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Cari kasir..."
             className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 shadow-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -139,17 +164,20 @@ const Orders = () => {
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {['', 'PENDING', 'PAID', 'READY', 'CANCELLED'].map((stat) => (
+        {["", "PENDING", "PAID", "READY", "CANCELLED"].map((stat) => (
           <button
             key={stat}
-            onClick={() => { setStatusFilter(stat); setPagination({...pagination, page: 1}); }}
+            onClick={() => {
+              setStatusFilter(stat);
+              setPagination({ ...pagination, page: 1 });
+            }}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-              statusFilter === stat 
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' 
-                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              statusFilter === stat
+                ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
             }`}
           >
-            {stat === '' ? 'Semua Pesanan' : stat}
+            {stat === "" ? "Semua Pesanan" : stat}
           </button>
         ))}
       </div>
@@ -163,6 +191,7 @@ const Orders = () => {
                 <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Waktu</th>
                 <th className="px-6 py-4">Kasir</th>
+                <th className="px-6 py-4">Meja</th>
                 <th className="px-6 py-4">Total</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
@@ -170,43 +199,85 @@ const Orders = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan="6" className="text-center py-10">Loading...</td></tr>
-              ) : orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="px-6 py-4 font-medium">#{order.id}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} />
-                      {format(parseISO(order.createdAt), 'dd MMM HH:mm')}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">{order.user?.name}</td>
-                  <td className="px-6 py-4 font-bold">{formatIDR(order.totalPrice)}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold border ${getStatusColor(order.status)}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button 
-                        onClick={() => openDetail(order.id)}
-                        className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 border border-indigo-200"
-                        title="Lihat Detail & Struk"
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </div>
+                <tr>
+                  <td colSpan="6" className="text-center py-10">
+                    Loading...
                   </td>
                 </tr>
-              ))}
+              ) : (
+                orders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-gray-50/80 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium">#{order.id}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} />
+                        {format(parseISO(order.createdAt), "dd MMM HH:mm")}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">{order.user?.name}</td>
+                    <td className="px-6 py-4">
+                      {order.orderType === "TAKE_AWAY" ? (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold">
+                          Bungkus
+                        </span>
+                      ) : (
+                        <span className="font-bold text-indigo-600">
+                          Meja {order.tableNumber}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 font-bold">
+                      {formatIDR(order.totalPrice)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-2 py-1 rounded-full text-xs font-bold border ${getStatusColor(
+                          order.status
+                        )}`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openDetail(order.id)}
+                          className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 border border-indigo-200"
+                          title="Lihat Detail & Struk"
+                        >
+                          <Eye size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         {/* Pagination Footer (Sama spt sebelumnya, dipersingkat di sini) */}
         <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end gap-2">
-            <button disabled={pagination.currentPage===1} onClick={() => setPagination({...pagination, page: pagination.currentPage-1})} className="px-3 py-1 bg-white border rounded">Prev</button>
-            <button disabled={pagination.currentPage===pagination.totalPages} onClick={() => setPagination({...pagination, page: pagination.currentPage+1})} className="px-3 py-1 bg-white border rounded">Next</button>
+          <button
+            disabled={pagination.currentPage === 1}
+            onClick={() =>
+              setPagination({ ...pagination, page: pagination.currentPage - 1 })
+            }
+            className="px-3 py-1 bg-white border rounded"
+          >
+            Prev
+          </button>
+          <button
+            disabled={pagination.currentPage === pagination.totalPages}
+            onClick={() =>
+              setPagination({ ...pagination, page: pagination.currentPage + 1 })
+            }
+            className="px-3 py-1 bg-white border rounded"
+          >
+            Next
+          </button>
         </div>
       </div>
 
@@ -217,7 +288,12 @@ const Orders = () => {
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="font-bold text-gray-800">Detail Pesanan</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500"><X size={20}/></button>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-red-500"
+              >
+                <X size={20} />
+              </button>
             </div>
 
             {/* Modal Content */}
@@ -227,16 +303,35 @@ const Orders = () => {
               ) : (
                 <>
                   {/* AREA STRUK (Yang akan di-print) */}
-                  <div ref={printRef} className="bg-white p-4 border border-gray-200 rounded-xl mb-6 text-sm font-mono">
+                  <div
+                    ref={printRef}
+                    className="bg-white p-4 border border-gray-200 rounded-xl mb-6 text-sm font-mono"
+                  >
                     <div className="text-center mb-4 border-b border-dashed border-gray-300 pb-4">
                       <h2 className="text-xl font-bold uppercase">Resto App</h2>
-                      <p className="text-xs text-gray-500">Jl. Teknologi No. 10, Makassar</p>
-                      <p className="text-xs text-gray-500">Telp: 0812-3456-7890</p>
+                      <p className="text-xs text-gray-500">
+                        Jl. Teknologi No. 10, Makassar
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Telp: 0812-3456-7890
+                      </p>
                     </div>
 
                     <div className="flex justify-between text-xs text-gray-500 mb-2">
                       <span>Order #{selectedOrder.id}</span>
-                      <span>{format(parseISO(selectedOrder.createdAt), 'dd/MM/yy HH:mm')}</span>
+                      <span>
+                        {format(
+                          parseISO(selectedOrder.createdAt),
+                          "dd/MM/yy HH:mm"
+                        )}
+                      </span>
+                    </div>
+                    <div className="text-center py-2 mb-2 border-y border-dashed border-gray-300">
+                      <span className="text-lg font-bold uppercase">
+                        {selectedOrder.orderType === "TAKE_AWAY"
+                          ? "TAKE AWAY (BUNGKUS)"
+                          : `MEJA ${selectedOrder.tableNumber}`}
+                      </span>
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 mb-4">
                       <span>Kasir: {selectedOrder.user?.name}</span>
@@ -248,8 +343,15 @@ const Orders = () => {
                     <div className="space-y-2 mb-4">
                       {selectedOrder.orderItems?.map((item, idx) => (
                         <div key={idx} className="flex justify-between">
-                          <span>{item.menu.name} <span className="text-gray-400">x{item.quantity}</span></span>
-                          <span>{formatIDR(Number(item.price) * item.quantity)}</span>
+                          <span>
+                            {item.menu.name}{" "}
+                            <span className="text-gray-400">
+                              x{item.quantity}
+                            </span>
+                          </span>
+                          <span>
+                            {formatIDR(Number(item.price) * item.quantity)}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -273,12 +375,20 @@ const Orders = () => {
 
                   {/* Action Buttons */}
                   <div className="flex gap-3">
-                    {selectedOrder.status === 'PENDING' && (
-                       <button onClick={() => handleUpdateStatus(selectedOrder.id, 'PAID')} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2">
-                         <CheckCircle size={18} /> Bayar
-                       </button>
+                    {selectedOrder.status === "PENDING" && (
+                      <button
+                        onClick={() =>
+                          handleUpdateStatus(selectedOrder.id, "PAID")
+                        }
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle size={18} /> Bayar
+                      </button>
                     )}
-                    <button onClick={handlePrint} className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2">
+                    <button
+                      onClick={handlePrint}
+                      className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2"
+                    >
                       <Printer size={18} /> Print Struk
                     </button>
                   </div>
