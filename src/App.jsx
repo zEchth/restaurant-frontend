@@ -72,7 +72,17 @@ function App() {
               </AdminRoute>
             } 
           />
-          
+
+          {/* Halaman Orders History */}
+          <Route 
+            path="/orders" 
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            } 
+          />
+
         </Routes>
       </Router>
       <ToastContainer position="top-right" autoClose={2000} theme="colored" />

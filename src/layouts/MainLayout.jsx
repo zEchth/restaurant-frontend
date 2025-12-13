@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { LayoutDashboard, ShoppingCart, LogOut, UtensilsCrossed, Menu as MenuIcon } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 
 const MainLayout = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
@@ -11,6 +12,7 @@ const MainLayout = ({ children }) => {
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
     { icon: <ShoppingCart size={20} />, label: 'Kasir (POS)', path: '/pos' },
+    { icon: <ClipboardList size={20} />, label: 'Riwayat Pesanan', path: '/orders' },
     // Menu management hanya muncul jika ADMIN
     ...(user?.role === 'ADMIN' ? [{ icon: <UtensilsCrossed size={20} />, label: 'Manajemen Menu', path: '/menus' }] : []),
   ];
