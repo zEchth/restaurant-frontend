@@ -14,6 +14,8 @@ import MenuManagement from './pages/MenuManagement';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import NotFound from './pages/NotFound';
+import Profile from './pages/Profile';
+import UserManagement from './pages/UserManagement';
 
 // Component Proteksi Khusus Admin
 const AdminRoute = ({ children }) => {
@@ -82,6 +84,25 @@ function App() {
               <ProtectedRoute>
                 <Orders />
               </ProtectedRoute>
+            } 
+          />
+
+          {/* Halaman Profile (Protected) */}
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/users" 
+            element={
+              <AdminRoute>
+                <UserManagement />
+              </AdminRoute>
             } 
           />
 

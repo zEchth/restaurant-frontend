@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Search, Plus, Minus, Trash2, ShoppingBag, CreditCard } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingBag, CreditCard, Eye, Tag, Info } from 'lucide-react'; // Tambah icon Eye, Tag, Info
 import { toast } from 'react-toastify';
+import Modal from '../components/Modal'; // Import Modal kita
 
 const POS = () => {
   const [menus, setMenus] = useState([]);
@@ -10,7 +11,11 @@ const POS = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
 
-  // Helper untuk format Rupiah
+  // State untuk Detail Menu (Modal)
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedMenu, setSelectedMenu] = useState(null);
+
+  // Helper Format Rupiah
   const formatIDR = (price) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -19,13 +24,13 @@ const POS = () => {
     }).format(price);
   };
 
-  // Helper Gambar Dummy (Biar tampilan cantik)
+  // Helper Gambar Dummy
   const getImage = (category) => {
     const images = {
-      'Makanan Berat': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80',
-      'Minuman': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=500&q=80',
-      'Camilan': 'https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=500&q=80',
-      'default': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?auto=format&fit=crop&w=500&q=80'
+      'Makanan Berat': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+      'Minuman': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=800&q=80',
+      'Camilan': 'https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=800&q=80',
+      'default': 'https://images.unsplash.com/photo-1493770348161-369560ae357d?auto=format&fit=crop&w=800&q=80'
     };
     return images[category] || images['default'];
   };
@@ -36,9 +41,8 @@ const POS = () => {
 
   const fetchMenus = async () => {
     try {
-      // Panggil endpoint backend dengan query search
       const res = await api.get(`/menus?search=${search}&limit=100`); 
-      setMenus(res.data.data); // Asumsi struktur response standard backend kita
+      setMenus(res.data.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -84,19 +88,33 @@ const POS = () => {
           quantity: item.qty
         }))
       };
-
       await api.post('/orders', payload);
       toast.success('Pesanan Berhasil Dibuat! 🚀');
-      setCart([]); // Kosongkan cart
+      setCart([]); 
     } catch (err) {
       toast.error('Gagal membuat pesanan');
     }
   };
 
-  // Extract Categories unik dari data menu
+  // Logic Detail Modal
+  const openDetail = (menu) => {
+    setSelectedMenu(menu);
+    setIsDetailOpen(true);
+  };
+
+  const closeDetail = () => {
+    setIsDetailOpen(false);
+    setTimeout(() => setSelectedMenu(null), 200); // Delay biar animasi smooth
+  };
+
+  // Logic Add to Cart dari dalam Modal
+  const handleAddToCartFromModal = () => {
+    addToCart(selectedMenu);
+    toast.success(`${selectedMenu.name} masuk keranjang`);
+    closeDetail();
+  };
+
   const categories = ['All', ...new Set(menus.map(m => m.category.name))];
-  
-  // Filter menu berdasarkan kategori pilihan
   const filteredMenus = selectedCategory === 'All' 
     ? menus 
     : menus.filter(m => m.category.name === selectedCategory);
@@ -106,7 +124,7 @@ const POS = () => {
       
       {/* LEFT SECTION: Menu Grid */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header Section */}
+        {/* Header */}
         <header className="px-8 py-6 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-10">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Pilih Menu</h1>
@@ -148,25 +166,53 @@ const POS = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredMenus.map((menu) => (
-                <div key={menu.id} className="group bg-white rounded-2xl p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100">
-                  <div className="relative h-40 rounded-xl overflow-hidden mb-4">
+                <div key={menu.id} className="group bg-white rounded-2xl p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 relative">
+                  
+                  {/* Image Container */}
+                  <div 
+                    className="relative h-40 rounded-xl overflow-hidden mb-4 cursor-pointer"
+                    onClick={() => openDetail(menu)} // Klik gambar buka detail
+                  >
                     <img 
                       src={getImage(menu.category.name)} 
                       alt={menu.name} 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-gray-700 shadow-sm">
-                      {menu.category.name}
+                    {/* Badge Category */}
+                    <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold text-white shadow-sm flex items-center gap-1">
+                      <Tag size={10} /> {menu.category.name}
                     </div>
                   </div>
+
                   <div className="px-2 pb-2">
-                    <h3 className="font-bold text-gray-800 text-lg mb-1 truncate">{menu.name}</h3>
-                    <p className="text-gray-500 text-sm mb-4 line-clamp-2 h-10">{menu.description || 'Tidak ada deskripsi'}</p>
+                    {/* Title & Info Button */}
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 
+                        className="font-bold text-gray-800 text-lg truncate cursor-pointer hover:text-indigo-600 transition-colors"
+                        onClick={() => openDetail(menu)}
+                      >
+                        {menu.name}
+                      </h3>
+                      <button 
+                        onClick={() => openDetail(menu)}
+                        className="text-gray-400 hover:text-indigo-500 transition-colors p-1 -mr-2"
+                      >
+                        <Info size={18} />
+                      </button>
+                    </div>
+
+                    <p className="text-gray-500 text-sm mb-4 line-clamp-2 h-10">
+                      {menu.description || 'Tidak ada deskripsi tersedia.'}
+                    </p>
+                    
                     <div className="flex items-center justify-between">
                       <span className="text-indigo-600 font-extrabold text-lg">{formatIDR(menu.price)}</span>
                       <button 
-                        onClick={() => addToCart(menu)}
-                        className="w-10 h-10 rounded-full bg-gray-100 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Mencegah trigger openDetail saat klik tombol Plus
+                          addToCart(menu);
+                        }}
+                        className="w-10 h-10 rounded-full bg-gray-100 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all active:scale-90"
                       >
                         <Plus size={20} />
                       </button>
@@ -179,17 +225,16 @@ const POS = () => {
         </div>
       </div>
 
-      {/* RIGHT SECTION: Cart Sidebar */}
+      {/* RIGHT SECTION: Cart Sidebar (Tidak berubah) */}
       <div className="w-86 bg-white border-l border-gray-200 flex flex-col h-full shadow-2xl z-20">
         <div className="p-6 border-b border-gray-100 bg-white">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <ShoppingBag className="text-indigo-600" />
-            Pesanan Saat Ini
+            Pesanan
           </h2>
-          <p className="text-sm text-gray-400 mt-1">Order ID: #{Math.floor(Math.random() * 1000)}</p>
+          <p className="text-sm text-gray-400 mt-1">Kasir Mode</p>
         </div>
 
-        {/* Cart Items List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center opacity-50">
@@ -218,7 +263,6 @@ const POS = () => {
           )}
         </div>
 
-        {/* Cart Summary & Checkout */}
         <div className="p-6 bg-gray-50 border-t border-gray-200">
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-gray-500 text-sm">
@@ -245,6 +289,60 @@ const POS = () => {
           </button>
         </div>
       </div>
+
+      {/* --- MODAL DETAIL MENU --- */}
+      <Modal isOpen={isDetailOpen} onClose={closeDetail} title="Detail Menu">
+        {selectedMenu && (
+          <div className="space-y-6">
+            {/* Gambar Besar */}
+            <div className="relative h-56 rounded-xl overflow-hidden shadow-sm group">
+               <img 
+                 src={getImage(selectedMenu.category.name)} 
+                 alt={selectedMenu.name} 
+                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+               />
+               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                  <span className="inline-block px-2 py-1 bg-white/20 backdrop-blur-md text-white text-xs font-bold rounded-lg border border-white/30">
+                    {selectedMenu.category.name}
+                  </span>
+               </div>
+            </div>
+
+            {/* Info Menu */}
+            <div>
+              <div className="flex justify-between items-start">
+                <h2 className="text-2xl font-bold text-gray-800">{selectedMenu.name}</h2>
+                <span className="text-xl font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">
+                  {formatIDR(selectedMenu.price)}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2 mt-2">
+                <span className={`px-2 py-0.5 rounded text-xs font-bold ${selectedMenu.isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {selectedMenu.isAvailable ? 'Ready Stock' : 'Habis'}
+                </span>
+              </div>
+
+              <div className="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <h4 className="text-sm font-bold text-gray-700 mb-1">Deskripsi</h4>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {selectedMenu.description || 'Tidak ada deskripsi tambahan untuk menu ini.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Tombol Aksi */}
+            <button
+              onClick={handleAddToCartFromModal}
+              disabled={!selectedMenu.isAvailable}
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ShoppingBag size={20} />
+              {selectedMenu.isAvailable ? 'Tambah ke Pesanan' : 'Stok Habis'}
+            </button>
+          </div>
+        )}
+      </Modal>
 
     </div>
   );
