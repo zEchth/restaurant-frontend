@@ -1,53 +1,92 @@
-import React, { useState, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Mail, Lock } from "lucide-react";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const success = await login(email, password);
-    if (success) {
-      navigate('/dashboard'); // Arahkan ke dashboard jika sukses
-    }
+    if (success) navigate("/dashboard");
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-900">Restaurant System</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-extrabold text-gray-800">
+            Restaurant POS
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Masuk ke sistem manajemen restoran
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              required
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <label className="text-sm font-semibold text-gray-600">
+              Email
+            </label>
+            <div className="relative mt-1">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="email"
+                required
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl
+                           focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                           outline-none text-sm"
+                placeholder="admin@restaurant.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
           </div>
+
+          {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              required
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <label className="text-sm font-semibold text-gray-600">
+              Password
+            </label>
+            <div className="relative mt-1">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="password"
+                required
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl
+                           focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                           outline-none text-sm"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
           </div>
+
+          {/* Button */}
           <button
             type="submit"
-            className="w-full px-4 py-2 font-bold text-white bg-blue-600 rounded hover:bg-blue-700"
+            className="w-full py-3 rounded-xl font-bold text-white
+                       bg-indigo-600 hover:bg-indigo-700
+                       transition-all shadow-md hover:shadow-lg"
           >
             Masuk
           </button>
         </form>
+
+        {/* Footer */}
+        <p className="text-xs text-center text-gray-400 mt-6">
+          © {new Date().getFullYear()} Restaurant Management System
+        </p>
       </div>
     </div>
   );
