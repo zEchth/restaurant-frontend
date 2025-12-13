@@ -11,6 +11,7 @@ import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
 import POS from './pages/POS';
 import MenuManagement from './pages/MenuManagement';
+import Dashboard from './pages/Dashboard';
 
 // Component Proteksi Khusus Admin
 const AdminRoute = ({ children }) => {
@@ -40,10 +41,17 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/pos" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Dashboard kita arahkan ke POS dulu karena belum buat Dashboard Chart */}
-          <Route path="/dashboard" element={<Navigate to="/pos" replace />} />
+          {/* Dashboard Chart */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Halaman POS */}
           <Route 
@@ -64,8 +72,7 @@ function App() {
               </AdminRoute>
             } 
           />
-
-          <Route path="/" element={<Navigate to="/pos" replace />} />
+          
         </Routes>
       </Router>
       <ToastContainer position="top-right" autoClose={2000} theme="colored" />
