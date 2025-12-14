@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api', // Sesuaikan port backend Anda
+  baseURL: import.meta.env.VITE_API_BASE_URL, // Sesuaikan port backend Anda
 });
 
 // Interceptor: Setiap request keluar, tempel token otomatis
