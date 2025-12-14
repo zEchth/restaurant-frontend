@@ -16,6 +16,9 @@ import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
 import Modal from "../components/Modal";
 
+// REGEX: Min 8 chars, at least one lowercase, one uppercase, and one digit
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/;
+
 const Profile = () => {
   const { user, logout } = useContext(AuthContext);
 
@@ -24,31 +27,74 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "", // Kosongkan jika tidak ingin ganti password
+    password: "", 
   });
+
+  // State untuk menyimpan pesan error validasi password
+  const [passwordError, setPasswordError] = useState("");
 
   if (!user) return null;
 
-  // Buka Modal & Isi data saat ini
+  // FUNGSI VALIDASI PASSWORD
+  const validatePassword = (password) => {
+    // Jika password kosong (opsional), validasi dianggap berhasil
+    if (!password) {
+      setPasswordError("");
+      return true;
+    }
+
+    let error = "";
+    if (password.length < 8) {
+      error = "Password harus minimal 8 karakter.";
+    } else if (!passwordRegex.test(password)) {
+      error = "Password harus mengandung huruf besar, huruf kecil, dan angka.";
+    }
+
+    setPasswordError(error);
+    return error === "";
+  };
+
+  // Buka Modal & Reset State
   const openModal = () => {
     setFormData({
       name: user.name,
       email: user.email,
-      password: "",
+      password: "", // Selalu kosongkan password saat modal dibuka
     });
+    setPasswordError(""); // Reset error saat membuka modal
     setIsModalOpen(true);
   };
 
+  // HANDLER PERUBAHAN INPUT
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "password") {
+      validatePassword(value); // Panggil validasi saat password diketik
+    }
+  };
+
+  // HANDLER SUBMIT
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+
+    // 1. Validasi Password jika diisi
+    if (formData.password && !validatePassword(formData.password)) {
+      toast.error("Format password tidak valid. Silakan cek persyaratan.");
+      return; // Hentikan proses submit
+    }
+    
     try {
-      // Kirim hanya yang perlu
+      // 2. Siapkan Payload
       const payload = {
         name: formData.name,
         email: formData.email,
       };
+      // Hanya tambahkan password jika diisi (dan sudah pasti valid di sini)
       if (formData.password) payload.password = formData.password;
 
+      // 3. Kirim Update
       await api.patch(`/users/${user.id}`, payload);
 
       toast.success(
@@ -56,7 +102,7 @@ const Profile = () => {
       );
       setIsModalOpen(false);
 
-      // Opsional: Logout otomatis agar data di token ter-refresh
+      // 4. Logout untuk refresh token/data user
       setTimeout(() => logout(), 2000);
     } catch (err) {
       toast.error(err.response?.data?.message || "Gagal update profil");
@@ -95,7 +141,7 @@ const Profile = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* KARTU PROFIL UTAMA (KIRI) - Sama seperti sebelumnya */}
+        {/* KARTU PROFIL UTAMA (KIRI) */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative">
             <div className={`h-32 bg-gradient-to-r ${roleColor}`}></div>
@@ -182,7 +228,6 @@ const Profile = () => {
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                   <Calendar size={18} className="text-gray-400" />
                   <span className="text-gray-700 font-medium">
-                    {/* Menggunakan data statis jika createdAt tidak ada di token */}
                     {user.createdAt
                       ? format(parseISO(user.createdAt), "dd MMMM yyyy", {
                           locale: id,
@@ -222,6 +267,7 @@ const Profile = () => {
         title="Edit Profil Saya"
       >
         <form onSubmit={handleUpdateProfile} className="space-y-4">
+          {/* Input Nama */}
           <div>
             <label className="text-sm font-medium text-gray-700">
               Nama Lengkap
@@ -233,16 +279,16 @@ const Profile = () => {
               />
               <input
                 type="text"
+                name="name"
                 required
                 className="w-full pl-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={handleChange}
               />
             </div>
           </div>
 
+          {/* Input Email */}
           <div>
             <label className="text-sm font-medium text-gray-700">Email</label>
             <div className="relative mt-1">
@@ -252,16 +298,16 @@ const Profile = () => {
               />
               <input
                 type="email"
+                name="email"
                 required
                 className="w-full pl-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
+                onChange={handleChange}
               />
             </div>
           </div>
 
+          {/* Input Ganti Password (TERVALIDASI) */}
           <div>
             <label className="text-sm font-medium text-gray-700">
               Ganti Password (Opsional)
@@ -273,13 +319,26 @@ const Profile = () => {
               />
               <input
                 type="password"
+                name="password"
                 placeholder="Biarkan kosong jika tidak diganti"
-                className="w-full pl-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                // Conditional styling: border-red-500 jika ada error
+                className={`w-full pl-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${
+                  passwordError ? "border-red-500" : ""
+                }`}
                 value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
+                onChange={handleChange}
               />
+            </div>
+
+            {/* TAMPILKAN PESAN ERROR */}
+            {passwordError && (
+              <p className="mt-1 text-xs text-red-500 font-medium">
+                {passwordError}
+              </p>
+            )}
+            
+            <div className="pt-2 text-xs text-gray-400">
+               *Syarat: Minimal 8 karakter, harus mengandung huruf besar, huruf kecil, dan angka.
             </div>
           </div>
 
@@ -290,7 +349,9 @@ const Profile = () => {
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700"
+            // Tombol dinonaktifkan jika password diisi TAPI ada error (passwordError bukan string kosong)
+            disabled={!!formData.password && !!passwordError} 
+            className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:bg-indigo-400"
           >
             Simpan Perubahan
           </button>
