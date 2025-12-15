@@ -56,7 +56,12 @@ const Orders = () => {
         },
       });
       setOrders(res.data.data);
-      setPagination(res.data.pagination);
+      setPagination({
+        // Menggunakan currentPage dari backend, lalu mengubah namanya menjadi 'page' di state
+        page: Number(res.data.pagination.currentPage) || 1,
+        totalPages: Number(res.data.pagination.totalPages) || 1, // Memastikan tipe Number
+        limit: Number(res.data.pagination.limit) || 10,
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -128,6 +133,21 @@ const Orders = () => {
         return "bg-red-50 text-red-600 border-red-100";
       default:
         return "bg-gray-100 text-gray-600";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "PAID":
+        return <CheckCircle size={14} className="mr-1.5" />;
+      case "READY":
+        return <CheckCircle size={14} className="mr-1.5" />;
+      case "PENDING":
+        return <Clock size={14} className="mr-1.5" />;
+      case "CANCELLED":
+        return <XCircle size={14} className="mr-1.5" />;
+      default:
+        return null;
     }
   };
 
@@ -238,6 +258,7 @@ const Orders = () => {
                           order.status
                         )}`}
                       >
+                        {getStatusIcon(order.status)}
                         {order.status}
                       </span>
                     </td>
@@ -261,22 +282,27 @@ const Orders = () => {
         {/* Pagination Footer (Sama spt sebelumnya, dipersingkat di sini) */}
         <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end gap-2">
           <button
-            disabled={pagination.currentPage === 1}
+            disabled={pagination.page === 1}
             onClick={() =>
-              setPagination({ ...pagination, page: pagination.currentPage - 1 })
+              setPagination({ ...pagination, page: pagination.page - 1 })
             }
             className="px-3 py-1 bg-white border rounded"
           >
-            Prev
+            Sebelumnya
           </button>
+
+          <span className="self-center px-2 text-gray-600">
+            Halaman {pagination.page} dari {pagination.totalPages}
+          </span>
+
           <button
-            disabled={pagination.currentPage === pagination.totalPages}
+            disabled={pagination.page === pagination.totalPages}
             onClick={() =>
-              setPagination({ ...pagination, page: pagination.currentPage + 1 })
+              setPagination({ ...pagination, page: pagination.page + 1 })
             }
             className="px-3 py-1 bg-white border rounded"
           >
-            Next
+            Selanjutnya
           </button>
         </div>
       </div>
@@ -374,23 +400,63 @@ const Orders = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3">
+                  <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-gray-100">
+                    {/* Aksi Utama Berdasarkan Status */}
                     {selectedOrder.status === "PENDING" && (
+                      <div className="flex gap-3">
+                        {/* Tombol Bayar / Update ke PAID */}
+                        <button
+                          onClick={() =>
+                            handleUpdateStatus(selectedOrder.id, "PAID")
+                          }
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
+                        >
+                          <CheckCircle size={18} /> Tandai Lunas (PAID)
+                        </button>
+
+                        {/* Tombol Batalkan Pesanan */}
+                        <button
+                          onClick={() => handleCancel(selectedOrder.id)}
+                          className="px-4 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
+                          title="Batalkan Pesanan Ini"
+                        >
+                          <XCircle size={18} /> Batalkan
+                        </button>
+                      </div>
+                    )}
+
+                    {selectedOrder.status === "PAID" && (
                       <button
                         onClick={() =>
-                          handleUpdateStatus(selectedOrder.id, "PAID")
+                          handleUpdateStatus(selectedOrder.id, "READY")
                         }
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
                       >
-                        <CheckCircle size={18} /> Bayar
+                        <Clock size={18} /> Tandai Siap (READY)
                       </button>
                     )}
-                    <button
-                      onClick={handlePrint}
-                      className="flex-1 bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2"
-                    >
-                      <Printer size={18} /> Print Struk
-                    </button>
+
+                    {/* Tombol Print (Selalu ada jika statusnya bukan CANCELLED) */}
+                    {selectedOrder.status !== "CANCELLED" && (
+                      <button
+                        onClick={handlePrint}
+                        className="bg-gray-800 hover:bg-gray-900 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
+                      >
+                        <Printer size={18} /> Cetak Struk
+                      </button>
+                    )}
+
+                    {selectedOrder.status === "READY" && (
+                      <div className="text-center p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg font-semibold">
+                        Pesanan sudah Siap disajikan/diambil.
+                      </div>
+                    )}
+
+                    {selectedOrder.status === "CANCELLED" && (
+                      <div className="text-center p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg font-semibold">
+                        Pesanan ini telah dibatalkan.
+                      </div>
+                    )}
                   </div>
                 </>
               )}
