@@ -122,7 +122,7 @@ const POS = () => {
       setTableNumber(""); // Reset form
       setOrderType("DINE_IN");
     } catch (err) {
-      toast.error("Gagal membuat pesanan");
+      toast.error("Gagal membuat pesanan, pastikan stok tersedia");
     }
   };
 

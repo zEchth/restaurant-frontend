@@ -1,15 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import api from "../api/axios";
 import { toast } from "react-toastify";
-import { Plus, Search, Trash2, User, Mail, Shield, Key, Edit2 } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Trash2,
+  User,
+  Mail,
+  Shield,
+  Key,
+  Edit2,
+} from "lucide-react";
 import Modal from "../components/Modal";
 import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
+
 
 // REGEX: Min 8 chars, at least one lowercase, one uppercase, and one digit
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/;
 
 const UserManagement = () => {
+  const { user: currentUser } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +37,7 @@ const UserManagement = () => {
     password: "",
     role: "USER",
   });
-  
+
   // STATE BARU: Untuk pesan error validasi password
   const [passwordError, setPasswordError] = useState("");
 
@@ -51,7 +63,7 @@ const UserManagement = () => {
       setPasswordError("");
       return true;
     }
-    
+
     // Jika mode tambah, atau mode edit dan password diisi
     let error = "";
     if (password.length < 8) {
@@ -136,7 +148,12 @@ const UserManagement = () => {
     setIsModalOpen(true);
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Memuat data karyawan...</div>;
+  if (loading)
+    return (
+      <div className="p-8 text-center text-gray-500">
+        Memuat data karyawan...
+      </div>
+    );
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -206,13 +223,15 @@ const UserManagement = () => {
                       <Edit2 size={16} />
                     </button>
 
-                    <button
-                      onClick={() => handleDelete(u.id)}
-                      className="p-2 border rounded-lg hover:bg-red-50 text-red-500 transition-colors"
-                      title="Hapus Karyawan"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {currentUser.id !== u.id && (
+                      <button
+                        onClick={() => handleDelete(u.id)}
+                        className="p-2 border rounded-lg hover:bg-red-50 text-red-500 transition-colors"
+                        title="Hapus Karyawan"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </td>
                 {/* ------------------------------------ */}
@@ -229,14 +248,16 @@ const UserManagement = () => {
         title={isEditMode ? "Edit Data Karyawan" : "Tambah Karyawan Baru"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           {/* Input Nama */}
           <div>
             <label className="text-sm font-medium text-gray-700" htmlFor="name">
               Nama Lengkap
             </label>
             <div className="relative mt-1">
-              <User size={18} className="absolute left-3 top-2.5 text-gray-400" />
+              <User
+                size={18}
+                className="absolute left-3 top-2.5 text-gray-400"
+              />
               <input
                 required
                 id="name"
@@ -252,11 +273,17 @@ const UserManagement = () => {
 
           {/* Input Email */}
           <div>
-            <label className="text-sm font-medium text-gray-700" htmlFor="email">
+            <label
+              className="text-sm font-medium text-gray-700"
+              htmlFor="email"
+            >
               Email Login
             </label>
             <div className="relative mt-1">
-              <Mail size={18} className="absolute left-3 top-2.5 text-gray-400" />
+              <Mail
+                size={18}
+                className="absolute left-3 top-2.5 text-gray-400"
+              />
               <input
                 required
                 id="email"
@@ -272,16 +299,22 @@ const UserManagement = () => {
 
           {/* --- INPUT PASSWORD DENGAN VALIDASI --- */}
           <div>
-            <label className="text-sm font-medium text-gray-700" htmlFor="password">
+            <label
+              className="text-sm font-medium text-gray-700"
+              htmlFor="password"
+            >
               Password {isEditMode ? "(Opsional)" : "Awal"}
             </label>
             <div className="relative mt-1">
-              <Key size={18} className="absolute left-3 top-2.5 text-gray-400" />
+              <Key
+                size={18}
+                className="absolute left-3 top-2.5 text-gray-400"
+              />
               <input
                 id="password"
                 name="password"
                 // Wajib diisi HANYA jika TAMBAH BARU (!isEditMode)
-                required={!isEditMode} 
+                required={!isEditMode}
                 type="password"
                 // Conditional styling: border-red-500 jika ada error
                 className={`w-full pl-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${
@@ -290,11 +323,13 @@ const UserManagement = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder={
-                  isEditMode ? "Kosongkan jika tidak diganti" : "Minimal 8 Karakter"
+                  isEditMode
+                    ? "Kosongkan jika tidak diganti"
+                    : "Minimal 8 Karakter"
                 }
               />
             </div>
-            
+
             {/* TAMPILKAN PESAN ERROR */}
             {passwordError && (
               <p className="mt-1 text-xs text-red-500 font-medium">
@@ -303,7 +338,8 @@ const UserManagement = () => {
             )}
 
             <div className="pt-2 text-xs text-gray-400">
-               *Syarat: Minimal 8 karakter, harus mengandung huruf besar, huruf kecil, dan angka.
+              *Syarat: Minimal 8 karakter, harus mengandung huruf besar, huruf
+              kecil, dan angka.
             </div>
           </div>
           {/* -------------------------------- */}
@@ -314,7 +350,10 @@ const UserManagement = () => {
               Role / Jabatan
             </label>
             <div className="relative mt-1">
-              <Shield size={18} className="absolute left-3 top-2.5 text-gray-400" />
+              <Shield
+                size={18}
+                className="absolute left-3 top-2.5 text-gray-400"
+              />
               <select
                 id="role"
                 name="role"
@@ -332,11 +371,11 @@ const UserManagement = () => {
             type="submit"
             // Tombol dinonaktifkan jika password diisi/diperlukan TAPI ada error
             disabled={
-                // Jika mode Tambah (wajib isi password) DAN ada error
-                (!isEditMode && !!passwordError) || 
-                // ATAU Jika mode Edit (opsional) DAN password diisi DAN ada error
-                (isEditMode && !!formData.password && !!passwordError)
-            } 
+              // Jika mode Tambah (wajib isi password) DAN ada error
+              (!isEditMode && !!passwordError) ||
+              // ATAU Jika mode Edit (opsional) DAN password diisi DAN ada error
+              (isEditMode && !!formData.password && !!passwordError)
+            }
             className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-lg mt-4 disabled:bg-indigo-400"
           >
             {isEditMode ? "Simpan Perubahan" : "Simpan Karyawan"}
