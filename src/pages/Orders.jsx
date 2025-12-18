@@ -131,6 +131,8 @@ const Orders = () => {
         return "bg-amber-100 text-amber-700 border-amber-200";
       case "CANCELLED":
         return "bg-red-50 text-red-600 border-red-100";
+      case "COMPLETED":
+        return "bg-gray-100 text-gray-700 border-gray-300";
       default:
         return "bg-gray-100 text-gray-600";
     }
@@ -146,6 +148,8 @@ const Orders = () => {
         return <Clock size={14} className="mr-1.5" />;
       case "CANCELLED":
         return <XCircle size={14} className="mr-1.5" />;
+      case "COMPLETED":
+        return <CheckCircle size={14} className="mr-1.5 text-gray-500" />;
       default:
         return null;
     }
@@ -184,7 +188,7 @@ const Orders = () => {
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {["", "PENDING", "PAID", "READY", "CANCELLED"].map((stat) => (
+        {["", "PENDING", "PAID", "READY", "COMPLETED", "CANCELLED"].map((stat) => (
           <button
             key={stat}
             onClick={() => {
@@ -240,12 +244,12 @@ const Orders = () => {
                     <td className="px-6 py-4">{order.user?.name}</td>
                     <td className="px-6 py-4">
                       {order.orderType === "TAKE_AWAY" ? (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold">
-                          Bungkus
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                          📦 TAKE AWAY
                         </span>
                       ) : (
-                        <span className="font-bold text-indigo-600">
-                          Meja {order.tableNumber}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                          🍽️ Meja {order.tableNumber}
                         </span>
                       )}
                     </td>
@@ -436,14 +440,33 @@ const Orders = () => {
                       </button>
                     )}
 
-                    {/* Tombol Print (Selalu ada jika statusnya bukan CANCELLED) */}
-                    {selectedOrder.status !== "CANCELLED" && (
+                    {selectedOrder.status === "READY" && (
                       <button
-                        onClick={handlePrint}
-                        className="bg-gray-800 hover:bg-gray-900 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
+                        onClick={() =>
+                          handleUpdateStatus(selectedOrder.id, "COMPLETED")
+                        }
+                        className="w-full bg-gray-700 hover:bg-gray-800 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
                       >
-                        <Printer size={18} /> Cetak Struk
+                        <CheckCircle size={18} /> Selesaikan Pesanan (Meja
+                        Kosong)
                       </button>
+                    )}
+
+                    {/* Tombol Print (Selalu ada jika statusnya bukan CANCELLED) */}
+                    {selectedOrder.status !== "CANCELLED" &&
+                      selectedOrder.status !== "COMPLETED" && (
+                        <button
+                          onClick={handlePrint}
+                          className="bg-gray-800 hover:bg-gray-900 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
+                        >
+                          <Printer size={18} /> Cetak Struk
+                        </button>
+                      )}
+
+                    {selectedOrder.status === "COMPLETED" && (
+                      <div className="text-center p-3 bg-gray-100 border border-gray-200 text-gray-600 rounded-lg font-semibold italic">
+                        Pesanan selesai. Meja telah dikosongkan.
+                      </div>
                     )}
 
                     {selectedOrder.status === "READY" && (
