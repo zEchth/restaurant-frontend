@@ -453,8 +453,7 @@ const Orders = () => {
                     )}
 
                     {/* Tombol Print (Selalu ada jika statusnya bukan CANCELLED) */}
-                    {selectedOrder.status !== "CANCELLED" &&
-                      selectedOrder.status !== "COMPLETED" && (
+                    {selectedOrder.status !== "CANCELLED" && (
                         <button
                           onClick={handlePrint}
                           className="bg-gray-800 hover:bg-gray-900 text-white py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition"
